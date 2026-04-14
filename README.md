@@ -41,13 +41,14 @@ The pipeline is built with sklearn's `ColumnTransformer` to handle each feature 
 - **Categorical** (`Division Name`, `Department Name`, `Class Name`): most-frequent imputation → one-hot encoding
 - **Text** (`Review Text`): two parallel branches:
   - **Character counts**: counts spaces, `!`, and `?` per review using a custom `CountCharacter` transformer
-  - Stylometric Densities (Advanced NLP): Uses spaCy to calculate the density of Nouns, Verbs, and Adjectives (counts normalized by review length) and total Named Entity (NER) counts. This is followed by standard scaling.
+  - **Stylometric Densities (Advanced NLP)**: Uses spaCy to calculate the density of Nouns, Verbs, and Adjectives (counts normalized by review length) and total Named Entity (NER) counts. This is followed by standard scaling.
   - **TF-IDF**: spaCy lemmatization with stopword removal → TF-IDF vectorization
 
 ### Custom Transformers
 
 - **`CountCharacter`**: counts occurrences of a given character in each review
 - **`SpacyLemmatizer`**: lemmatizes text and removes stopwords using spaCy's `en_core_web_sm` model
+- **SpacyNumericFeatures (Advanced)**: Extracts stylometric features by calculating the density of Nouns, Verbs, and Adjectives (counts normalized by document length) and performing Named Entity Recognition (NER) to count specific entities.
 
 ## Requirements
 
