@@ -41,6 +41,7 @@ The pipeline is built with sklearn's `ColumnTransformer` to handle each feature 
 - **Categorical** (`Division Name`, `Department Name`, `Class Name`): most-frequent imputation → one-hot encoding
 - **Text** (`Review Text`): two parallel branches:
   - **Character counts**: counts spaces, `!`, and `?` per review using a custom `CountCharacter` transformer
+  - Stylometric Densities (Advanced NLP): Uses spaCy to calculate the density of Nouns, Verbs, and Adjectives (counts normalized by review length) and total Named Entity (NER) counts. This is followed by standard scaling.
   - **TF-IDF**: spaCy lemmatization with stopword removal → TF-IDF vectorization
 
 ### Custom Transformers
@@ -81,7 +82,7 @@ Run the notebook cells top to bottom. The key steps are:
 |---|---|---|---|---|
 | Random Forest (baseline) | 0.847 | 0.849 | 0.990 | 0.914 |
 | Random Forest (tuned) | 0.868 | 0.876 | 0.978 | 0.924 |
-| Random Forest (with NER and POS tagging) | 0.868 | 0.876 | 0.978 | 0.924 |
+| Random Forest (with NER and POS tagging) | 0.858 | 0.867 | 0.977 | 0.919 |
 
 Tuning improved accuracy (+2.1pp) and precision (+2.7pp) with a modest trade-off in recall, resulting in a better overall F1 score.
 
