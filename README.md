@@ -26,7 +26,11 @@ The dataset (`reviews.csv`) contains anonymized women's clothing reviews with 8 
 ## Project Structure
 
 ```
-├── starter.ipynb       # Main notebook
+├── RF_pipeline.ipynb       # Main notebook
+├── images
+├── custom_transformers.py
+├── dashboard.py
+├── requirements.txt  
 ├── reviews.csv         # Dataset
 └── README.md
 ```
