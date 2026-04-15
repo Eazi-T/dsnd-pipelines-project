@@ -77,6 +77,8 @@ Run the notebook cells top to bottom. The key steps are:
 4. Train a `RandomForestClassifier` baseline
 5. Tune with `RandomizedSearchCV` over 10 iterations, 3-fold CV, optimising for F1
 
+
+
 ## Results
 
 | Model | Accuracy | Precision | Recall | F1 |
@@ -111,11 +113,11 @@ Tuning improved accuracy (+2.1pp) and precision (+2.7pp) with a modest trade-off
 
 The top 20 features by importance from the tuned model (without advanced NLP features):
 
-![Top 20 Features](feature_importance.png)
+![Top 20 Features](images/feature_importance.png)
 
 The top 25 features by importance from the tuned model (with advanced NLP features):
 
-![Top 25 Features](feature_importance2.png)
+![Top 25 Features](images/feature_importance2.png)
 
 Key findings:
 ## Without NER and POS Tagging
@@ -130,6 +132,27 @@ Key findings:
 - By implementing custom spaCy transformers, the process moved beyond simple word-counting (TF-IDF) to analyze the stylometry of reviews. 
 - The results showed that Adjective Density was the 4th most important feature in the entire model, outperforming common sentiment words. 
 - This suggests that the intensity and descriptiveness of a customer's language are fundamental drivers of their recommendation behavior.
+
+## ⚠️ Model Limitation: Handling Short or Vague Reviews
+
+The model relies on a TF-IDF–based representation of text, which means predictions are driven by word presence and frequency rather than true semantic understanding.
+As a result, the model performs best when given sufficiently detailed input. Short or vague reviews (e.g., “the dress is bad”) contain very limited information, leading to weak feature signals. In such cases, predictions tend to fall close to the dataset’s class distribution (class prior), rather than strongly reflecting the intended sentiment.
+This behavior is a known limitation of TF-IDF–based models. Because the approach does not capture context or meaning, it struggles with:
+- Short inputs
+- Subtle sentiment
+- Context-dependent phrases
+
+In contrast, models based on contextual embeddings (e.g., BERT or other transformer architectures) can better interpret meaning and would likely produce more accurate predictions for concise statements like “the dress is bad”.
+
+## Dashboard Preview
+
+![Overview Page](images/Overview.png)
+
+![Features Page](images/Features.png)
+
+![Model Page](images/Model.png)
+
+![Prediction Page](images/Predict.png)
 
 ## Acknowledgements
 - Udacity Data Scientist Nanodegree Program

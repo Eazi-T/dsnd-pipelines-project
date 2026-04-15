@@ -10,13 +10,49 @@ from flask import Flask, request, jsonify, render_template_string
 import joblib
 import pandas as pd
 import numpy as np
+from custom_transformers import CountCharacter, SpacyNumericFeatures, SpacyLemmatizer
 import os
 
 app = Flask(__name__)
 
+import pathlib
+import platform
+
+if platform.system() == "Windows":
+    pathlib.PosixPath = pathlib.WindowsPath
+
 # Load the saved pipeline (advanced_pipeline saved as review_pipeline.pkl)
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "review_pipeline.pkl")
 model = joblib.load(MODEL_PATH)
+
+def _reshape_1d(X):
+    """Drop-in replacement for np.reshape(newshape=-1) that works across numpy versions."""
+    import numpy as np
+    return np.reshape(X, -1)
+
+# Patch all FunctionTransformer steps that used np.reshape(newshape=-1)
+# Newer numpy dropped the 'newshape' keyword — replace with a plain callable.
+def _patch_pipeline(pipeline):
+    from sklearn.preprocessing import FunctionTransformer
+    from sklearn.pipeline import Pipeline
+    from sklearn.compose import ColumnTransformer
+    from sklearn.pipeline import FeatureUnion
+ 
+    def _patch_step(obj):
+        if isinstance(obj, FunctionTransformer):
+            if obj.kw_args and 'newshape' in obj.kw_args:
+                obj.func = _reshape_1d
+                obj.kw_args = {}
+        elif isinstance(obj, (Pipeline, FeatureUnion)):
+            for _, step in obj.steps if hasattr(obj, 'steps') else obj.transformer_list:
+                _patch_step(step)
+        elif isinstance(obj, ColumnTransformer):
+            for _, transformer, _ in obj.transformers_:
+                _patch_step(transformer)
+ 
+    _patch_step(pipeline)
+ 
+_patch_pipeline(model)
 
 # Top 25 feature importances — replace placeholder values for the 4 new NLP
 # features with your actual scores from Cell 50 output.
@@ -212,8 +248,7 @@ HTML_TEMPLATE = r"""
         <tbody>
           <tr><td>Baseline RF</td><td>0.847</td><td>0.849</td><td>0.990</td><td>0.914</td></tr>
           <tr class="row-tuned"><td>Tuned RF</td><td>0.868</td><td>0.876</td><td>0.978</td><td>0.924</td></tr>
-          <tr class="row-advanced"><td>Advanced RF (POS+NER)</td><td colspan="4" style="font-style:italic;">Update with Cell 49 results</td></tr>
-        </tbody>
+          <tr class="row-advanced"><td>Advanced RF (POS+NER)</td><td>0.858</td><td>0.867</td><td>0.977</td><td>0.919</td></tr>
       </table>
       <div style="margin-top:1rem;position:relative;height:200px;"><canvas id="metricsChart" role="img" aria-label="Grouped bar chart baseline vs tuned">Metrics comparison.</canvas></div>
     </div>
@@ -425,7 +460,7 @@ new Chart(document.getElementById('metricsChart'), {
   data: { labels:['Accuracy','Precision','Recall','F1'],
     datasets:[
       { label:'Baseline', data:[0.847,0.849,0.990,0.914], backgroundColor:'#b0b8cc' },
-      { label:'Tuned',    data:[0.868,0.876,0.978,0.924], backgroundColor:'#2a52a0' }
+      { label:'Tuned',    data:[0.868,0.876,0.978,0.924], backgroundColor:'#2a52a0' },
       { label:'Tuned(Advanced NLP)',    data:[0.858,0.867,0.977,0.919], backgroundColor:'#2a52a0' },
     ] },
   options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } }, scales:{ y:{ min:0.8, max:1.0 } } }
@@ -546,13 +581,11 @@ def predict():
 
     row = pd.DataFrame([{
         "Age": data.get("age", 38),
-        "Title": "",
         "Review Text": review_text,
-        "Positive Feedback Count": data.get("positive_feedback_count", 0),
+        "Positive Feedback Count": data.get("positive_feedback_count", 3),
         "Division Name": data.get("division_name", "General"),
         "Department Name": data.get("department_name", "Tops"),
         "Class Name": data.get("class_name", "Blouses"),
-        "Clothing ID": 0,
     }])
 
     pred  = int(model.predict(row)[0])
