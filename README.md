@@ -80,8 +80,7 @@ Run the notebook cells top to bottom. The key steps are:
 3. Build feature pipelines and combine with `ColumnTransformer`
 4. Train a `RandomForestClassifier` baseline
 5. Tune with `RandomizedSearchCV` over 10 iterations, 3-fold CV, optimising for F1
-
-
+6. Save the pipeline (with advanced NLP) or advanced NLP pipeline as 'review_pipeline.pkl'
 
 ## Results
 
